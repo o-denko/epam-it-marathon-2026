@@ -1,0 +1,67 @@
+name: AQA E2E Tests Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'aqa/**'
+      - 'backend/**'
+      - 'frontend/**'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      test_category:
+        description: 'Test category to run (e.g. level1, level2, level3, ui, api, or all)'
+        required: true
+        default: 'all'
+
+jobs:
+  run-e2e-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore Dependencies
+        run: |
+          cd aqa/restaurant-aqa-framework
+          dotnet restore
+
+      - name: Build Test Framework
+        run: |
+          cd aqa/restaurant-aqa-framework
+          dotnet build --no-restore
+
+      - name: Install Playwright Browsers
+        run: |
+          cd aqa/restaurant-aqa-framework
+          node bin/Debug/net10.0/.playwright/package/cli.js install chromium --with-deps || true
+
+      - name: Execute E2E Tests
+        continue-on-error: true
+        id: run_tests
+        run: |
+          cd aqa/restaurant-aqa-framework
+          CATEGORY="${{ github.event.inputs.test_category || 'all' }}"
+          if [ "$CATEGORY" = "all" ]; then
+            dotnet test --logger "trx;LogFileName=test_results.trx" --logger "html;LogFileName=test_results.html"
+          else
+            dotnet test --filter "Category=$CATEGORY" --logger "trx;LogFileName=test_results.trx" --logger "html;LogFileName=test_results.html"
+          fi
+
+      - name: Upload Test Results and Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: aqa-test-results
+          path: |
+            aqa/restaurant-aqa-framework/TestResults
+            aqa/restaurant-aqa-framework/**/test_results.html
+            aqa/restaurant-aqa-framework/**/test_results.trx

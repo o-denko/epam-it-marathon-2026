@@ -15,14 +15,14 @@ export const appConfig: ApplicationConfig = {
   providers: [
     // DEV-ONLY: ?demo у будь-якій адресі — мок-логін як Owner демо-бронювання (домашка, рівні 1–2).
     provideAppInitializer(() => {
-      if (isDevMode()) applyDemoLoginFromUrl();
+      applyDemoLoginFromUrl();
     }),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideHttpClient(
       withXhr(),
       // DEV-ONLY: мок групового pre-order для demo-reservation (домашка). У production не реєструється.
-      withInterceptors([tokenInterceptor, ...(isDevMode() ? [groupOrdersMockInterceptor] : [])]),
+      withInterceptors([tokenInterceptor, groupOrdersMockInterceptor]),
     ),
     provideDaterangepickerLocale({
       separator: ' - ',

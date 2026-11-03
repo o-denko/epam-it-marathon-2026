@@ -1,0 +1,18 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo Installing .NET 10 and Playwright dependencies...
+      - apt-get update && apt-get install -y libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2
+  build:
+    commands:
+      - echo Running AQA E2E Test Suite in AWS CodeBuild...
+      - cd aqa/restaurant-aqa-framework
+      - dotnet restore
+      - dotnet build --no-restore
+      - node bin/Debug/net10.0/.playwright/package/cli.js install chromium
+      - dotnet test --logger "trx;LogFileName=codebuild_results.trx"
+artifacts:
+  files:
+    - aqa/restaurant-aqa-framework/TestResults/**/*

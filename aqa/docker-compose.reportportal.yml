@@ -1,0 +1,29 @@
+services:
+  reportportal:
+    image: reportportal/service-api:5.11.0
+    container_name: reportportal-service-api
+    environment:
+      - RP_DB_HOST=postgres
+      - RP_DB_PORT=5432
+      - RP_DB_NAME=reportportal
+      - RP_DB_USER=rpuser
+      - RP_DB_PASS=rppass
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    restart: always
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: reportportal-postgres
+    environment:
+      - POSTGRES_DB=reportportal
+      - POSTGRES_USER=rpuser
+      - POSTGRES_PASSWORD=rppass
+    volumes:
+      - rp-postgres-data:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  rp-postgres-data:

@@ -37,3 +37,11 @@ node_modules/
 *.tfvars.json
 crash.log
 crash.*.log
+
+# .NET & Test build artifacts
+bin/
+obj/
+TestResults/
+*.zip
+.env
+
